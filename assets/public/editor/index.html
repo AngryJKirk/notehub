@@ -289,7 +289,7 @@ $(document).on('keydown', function(e) {
     }
     else if (e.keyCode == 55 && (e.ctrlKey || e.metaKey) && e.shiftKey) {    // CTRL + SHIFT + 7
         const text = $('#wmd-input').val();
-        let name = text.split("\n")[0].replaceAll("#", "")
+        let name = text.split("\n")[0].replaceAll("#", "").trim()
         const xhr = new XMLHttpRequest();
         const cb = function (status, responseRaw) {
             const response = JSON.parse(responseRaw);
