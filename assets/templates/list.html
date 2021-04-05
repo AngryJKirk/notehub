@@ -1,0 +1,23 @@
+{{define "List"}}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NoteHub List</title>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <link href="/style.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<div id="hero">
+    {{range .}}
+    <a class="landing-button" style="color: white" href="/{{.ID}}">{{.ID }}</a>
+    <br>
+    {{end}}
+</div>
+<div id="dashed-line"></div>
+<footer>
+    <a href="/">&#8962; notehub</a>
+</footer>
+</body>
+</html>
+{{end}}

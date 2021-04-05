@@ -5,3 +5,4 @@ database.sqlite-journal
 vendor
 database.sqlite
 notehub
+.idea

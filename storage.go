@@ -32,7 +32,7 @@ var (
 )
 
 type Note struct {
-	ID, Title, Text, Password, DeprecatedPassword, Encoded string
+	ID, Title, Text, Password, DeprecatedPassword, Encoded, Name string
 	Published, Edited                                      time.Time
 	Views                                                  int
 	Content, Ads                                           template.HTML
@@ -109,13 +109,16 @@ func insert(c echo.Context, db *sql.DB, n *Note) (*Note, error) {
 	}
 	stmt, _ := tx.Prepare("insert into notes(id, text, password) values(?, ?, ?)")
 	defer stmt.Close()
-	id := randId()
+	id := n.Name
+	if id == "" {
+		id = randId()
+	}
 	_, err = stmt.Exec(id, n.Text, n.Password)
 	if err != nil {
 		tx.Rollback()
 		if strings.HasPrefix(err.Error(), "UNIQUE constraint failed") {
 			c.Logger().Infof("collision on id %s", id)
-			return save(c, db, n)
+			return nil, errorNameExists
 		}
 		return nil, err
 	}
@@ -167,4 +170,37 @@ func load(c echo.Context, db *sql.DB) (*Note, int) {
 	}
 	n.prepare()
 	return n, http.StatusOK
+}
+
+func loadAll(c echo.Context, db *sql.DB) ([]Note, int) {
+
+	c.Logger().Debug("loading notes")
+	stmt, _ := db.Prepare("select * from notes")
+	defer stmt.Close()
+	rows, _ := stmt.Query()
+	var notes []Note
+	for rows.Next() {
+		var id, text, password string
+		var published time.Time
+		var editedVal interface{}
+		var views int
+		if err := rows.Scan(&id, &text, &published, &editedVal, &password, &views); err != nil {
+			code := http.StatusNotFound
+			return nil, code
+		}
+		n := &Note{
+			ID:        id,
+			Text:      text,
+			Views:     views,
+			Published: published,
+		}
+		if editedVal != nil {
+			n.Edited = editedVal.(time.Time)
+		}
+		n.prepare()
+		notes = append(notes, *n)
+	}
+
+
+	return notes, http.StatusOK
 }

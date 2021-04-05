@@ -1,13 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"time"
 
@@ -19,7 +17,6 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-var TEST_MODE = false
 
 type Template struct{ templates *template.Template }
 
@@ -31,13 +28,11 @@ func main() {
 	e := echo.New()
 	e.Logger.SetLevel(log.DEBUG)
 
-	db, err := sql.Open("sqlite3", "./database.sqlite")
+	db, err := sql.Open("sqlite3", "./data/database.sqlite")
 	if err != nil {
 		e.Logger.Error(err)
 	}
 	defer db.Close()
-
-	TEST_MODE = os.Getenv("TEST_MODE") != ""
 
 	adsFName := os.Getenv("ADS")
 	var ads template.HTML
@@ -60,14 +55,15 @@ func main() {
 	e.File("/note.js", "assets/public/note.js")
 	e.File("/index.html", "assets/public/index.html")
 	e.File("/", "assets/public/index.html")
+	e.File("/Markdown.Converter.js", "assets/public/editor/Markdown.Converter.js")
+	e.File("/Markdown.Editor.js", "assets/public/editor/Markdown.Editor.js")
+	e.File("/Markdown.Extra.js", "assets/public/editor/Markdown.Extra.js")
+	e.File("/Markdown.Sanitizer.js", "assets/public/editor/Markdown.Sanitizer.js")
+	e.File("/mathjax-editing_writing.js", "assets/public/editor/mathjax-editing_writing.js")
+	e.File("/cmunrb.otf", "assets/public/editor/cmunrb.otf")
+	e.File("/cmunrm.otf", "assets/public/editor/cmunrm.otf")
+	e.File("/editor", "assets/public/editor/index.html")
 
-	e.GET("/TOS.md", func(c echo.Context) error {
-		n, code := md2html(c, "TOS")
-		if code != http.StatusOK {
-			c.String(code, statuses[code])
-		}
-		return c.Render(code, "Page", n)
-	})
 
 	e.GET("/:id", func(c echo.Context) error {
 		id := c.Param("id")
@@ -130,9 +126,6 @@ func main() {
 		if report != "" {
 			id := c.Param("id")
 			c.Logger().Infof("note %s was reported: %s", id, report)
-			if err := email(id, report); err != nil {
-				c.Logger().Errorf("couldn't send email: %v", err)
-			}
 		}
 		return c.NoContent(http.StatusNoContent)
 	})
@@ -142,6 +135,15 @@ func main() {
 		return c.Render(http.StatusOK, "Form", nil)
 	})
 
+	e.GET("/list", func(c echo.Context) error {
+		c.Logger().Debug("GET /list")
+		notes, err := loadAll(c, db)
+		if err != http.StatusOK {
+			return c.String(err, "Error happened")
+		}
+		return c.Render(http.StatusOK, "List", notes)
+	})
+
 	type postResp struct {
 		Success bool
 		Payload string
@@ -149,27 +151,13 @@ func main() {
 
 	e.POST("/", func(c echo.Context) error {
 		c.Logger().Debug("POST /")
-		if !TEST_MODE && !checkRecaptcha(c, c.FormValue("token")) {
-			code := http.StatusForbidden
-			return c.JSON(code, postResp{false, statuses[code] + ": robot check failed"})
-		}
-		if c.FormValue("tos") != "on" {
-			code := http.StatusPreconditionFailed
-			c.Logger().Errorf("POST / error: %d", code)
-			return c.JSON(code, postResp{false, statuses[code]})
-		}
 		id := c.FormValue("id")
 		text := c.FormValue("text")
-		l := len(text)
-		if (id == "" || id != "" && l != 0) && (10 > l || l > 50000) {
-			code := http.StatusBadRequest
-			c.Logger().Errorf("POST / error: %d", code)
-			return c.JSON(code, postResp{false, statuses[code] + ": note length not accepted"})
-		}
 		n := &Note{
 			ID:       id,
 			Text:     text,
 			Password: c.FormValue("password"),
+			Name: c.FormValue("name"),
 		}
 		n, err = save(c, db, n)
 		if err != nil {
@@ -178,6 +166,8 @@ func main() {
 			if err == errorUnathorised {
 				code = http.StatusUnauthorized
 			} else if err == errorBadRequest {
+				code = http.StatusBadRequest
+			} else if err == errorNameExists {
 				code = http.StatusBadRequest
 			}
 			c.Logger().Errorf("POST / error: %d", code)
@@ -200,32 +190,4 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 	e.Logger.Fatal(e.StartServer(s))
-}
-
-func checkRecaptcha(c echo.Context, captchaResp string) bool {
-	resp, err := http.PostForm("https://www.google.com/recaptcha/api/siteverify", url.Values{
-		"secret":   []string{os.Getenv("RECAPTCHA_SECRET")},
-		"response": []string{captchaResp},
-		"remoteip": []string{c.Request().RemoteAddr},
-	})
-	if err != nil {
-		c.Logger().Errorf("captcha response verification failed: %v", err)
-		return false
-	}
-	defer resp.Body.Close()
-	respJson := &struct {
-		Success    bool     `json:"success"`
-		ErrorCodes []string `json:"error-codes"`
-	}{}
-	s, err := ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(s, respJson)
-	if err != nil {
-		c.Logger().Errorf("captcha response parse recaptcha response: %v", err)
-		return false
-	}
-	if !respJson.Success {
-		c.Logger().Warnf("captcha validation failed: %v", respJson.ErrorCodes)
-	}
-	return respJson.Success
-
 }

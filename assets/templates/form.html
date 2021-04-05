@@ -6,7 +6,6 @@
         <meta charset="UTF-8" />
         <meta content="width=device-width, initial-scale=1.0" name="viewport" />
         <link href="/style.css" rel="stylesheet" type="text/css" />
-        <script src='https://www.google.com/recaptcha/api.js'></script>
         <script src='/new.js'></script>
         <script src='/note.js'></script>
     </head>
@@ -16,11 +15,12 @@
             <fieldset>
                 <input id="id" value="{{.ID}}" type="hidden" />
                 <input class="ui-elem" id="password" placeholder="Password for editing" type="text" autocomplete="off" />
-                <label style="margin-right: 1em">
-                    <input id="tos" type="checkbox" onClick="toggleButton()" />
-                    Accept <a href="/TOS.md">Terms of Service</a>
-                </label>
-                <button class="button ui-elem" disabled id="publish-button" type="button" onclick="grecaptcha.execute()">
+                {{if not .ID}}
+                <input class="ui-elem" id="name" placeholder="Note name" type="text" autocomplete="off" />
+                {{else}}
+                <input class="ui-elem" id="name" placeholder="Note name" type="text" autocomplete="off" hidden value=""/>
+                {{end}}
+                <button class="button ui-elem" id="publish-button" type="button" onclick="submitForm()">
                     {{if .ID}}Update{{else}}Publish{{end}} Note
                 </button>
                 <span id="feedback"></span>
@@ -29,13 +29,8 @@
         <footer>
             <a href="/">&#8962; notehub</a> &middot;
             <a href="https://github.com/chmllr/NoteHub">source code</a> &middot;
-            <a href="/TOS.md">terms of service</a>
         </footer>
-        <div class="g-recaptcha"
-             data-sitekey="6LfamjEUAAAAAANI45H3fpWG_xaSAcpYhENN4EnO"
-             data-callback="submitForm"
-             data-size="invisible">
-        </div>
     </body>
 </html>
+
 {{end}}

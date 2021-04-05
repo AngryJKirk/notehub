@@ -9,7 +9,7 @@ html, body {
     padding: 0;
     margin: 0;
     color: #353a3a;
-    background: #c5caca;
+    background: #EBEBEB;
 }
 
 #hero {
@@ -18,24 +18,11 @@ html, body {
     padding-top: 5em;
 }
 
-.ui-border {
-    border-radius: 3px;
-    border: 1px solid #333;
-}
-
 a {
     border-bottom: 1px dotted;
     text-decoration: none;
     font-weight: bold;
-    color: #086;
-}
-
-a:hover {
-    color: #097;
-}
-
-a:visited {
-    color: #075;
+    color: #52489C;
 }
 
 .button {
@@ -43,13 +30,13 @@ a:visited {
 }
 
 .ui-elem {
-    background: #fff;
+    background: whitesmoke;
     font-size: 1em;
     opacity: 0.8;
     padding: 0.3em;
-    border-radius: 3px;
     font-weight: 300;
-    border: 1px solid #333;
+    border: 3px black solid;
+    border-radius: 10px;
 }
 
 .landing-button {
@@ -57,13 +44,15 @@ a:visited {
     display: inline-block;
     width: 10em;
     white-space: nowrap;
-    border-radius: 3px;
-    border: none;
     margin: 0.5em;
-    background: #0a6;
     font-size: 1.5em;
     text-decoration: none;
     font-weight: 300;
+    color: #52489C;
+    border: 3px solid black;
+    background-color: #59C3C3;
+    border-radius: 25px;
+    transition: 0.5s;
 }
 
 .landing-button.demo {
@@ -73,7 +62,9 @@ a:visited {
 }
 
 .landing-button:hover {
-    background: #0b7;
+    -webkit-box-shadow: 5px 5px 15px 5px rgba(0, 0, 0, 0.44);
+    box-shadow: 5px 5px 15px 5px rgba(0, 0, 0, 0.44);
+    transform: scale(1.12)
 }
 
 .landing-button.demo:hover {
@@ -136,10 +127,7 @@ h6 {
 
 article {
     text-align: justify;
-    margin-top: 3em;
-    margin-bottom: 5em;
-    margin-right: auto;
-    margin-left: auto;
+    margin: 3em auto 5em;
 }
 
 article img {
@@ -192,7 +180,7 @@ pre, code {
     font-family: monospace;
     font-size: 1.1em;
     border-radius: 3px;
-    background-color: #b5baba;
+    background-color: #EBEBEB;
 }
 
 pre {
@@ -205,7 +193,7 @@ table {
 }
 
 th {
-    background-color: #b5baba;
+    background-color: #EBEBEB;
     line-height: 2.5em;
     padding: 0.3em;
 }
@@ -221,16 +209,16 @@ td {
 }
 
 textarea {
-    background-color: #b5baba;
+    background-color: whitesmoke;
     font-size: 1.2em;
-    border-radius: 5px;
     flex: 1 0;
     margin: 3em;
     padding: 2em;
 }
 
 textarea, fieldset {
-    border: none;
+    border: 3px black solid;
+    border-radius: 10px;
 }
 
 fieldset {

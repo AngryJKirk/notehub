@@ -53,7 +53,5 @@ func incViews(n *Note, db *sql.DB) {
 		}
 	}
 	stats.Store(n.ID, views+1)
-	if TEST_MODE {
-		flush(db)
-	}
+	_, _ = flush(db)
 }

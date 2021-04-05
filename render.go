@@ -29,6 +29,7 @@ var (
 
 	errorUnathorised = errors.New("password is wrong")
 	errorBadRequest  = errors.New("password is empty")
+	errorNameExists  = errors.New("name exists")
 )
 
 func (n *Note) prepare() {
