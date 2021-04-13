@@ -143,10 +143,6 @@ func randId() string {
 
 func load(c echo.Context, db *sql.DB) (*Note, int) {
 	q := c.Param("id")
-	if !rexpNoteID.Match([]byte(q)) {
-		code := http.StatusNotFound
-		return nil, code
-	}
 	c.Logger().Debugf("loading note %s", q)
 	stmt, _ := db.Prepare("select * from notes where id = ?")
 	defer stmt.Close()
