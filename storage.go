@@ -10,6 +10,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -51,13 +52,17 @@ func (n *Note) Fraud() bool {
 }
 
 func save(c echo.Context, db *sql.DB, n *Note) (*Note, error) {
-	if n.Password != "" {
-		clean := n.Password
-		n.Password = fmt.Sprintf("%x", sha256.Sum256([]byte(n.Password)))
-		h := md5.New()
-		h.Write([]byte(clean))
-		n.DeprecatedPassword = fmt.Sprintf("%x", h.Sum(nil))
+
+	if n.Password == "" {
+		n.Password = "kek"
 	}
+
+	clean := n.Password
+	n.Password = fmt.Sprintf("%x", sha256.Sum256([]byte(n.Password)))
+	h := md5.New()
+	h.Write([]byte(clean))
+	n.DeprecatedPassword = fmt.Sprintf("%x", h.Sum(nil))
+
 	if n.ID == "" {
 		return insert(c, db, n)
 	}
@@ -142,7 +147,7 @@ func randId() string {
 }
 
 func load(c echo.Context, db *sql.DB) (*Note, int) {
-	q := c.Param("id")
+	q, _ := url.QueryUnescape(c.Param("id"))
 	c.Logger().Debugf("loading note %s", q)
 	stmt, _ := db.Prepare("select * from notes where id = ?")
 	defer stmt.Close()
